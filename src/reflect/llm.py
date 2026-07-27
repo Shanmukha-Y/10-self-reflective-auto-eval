@@ -2,18 +2,25 @@
 generation with Pydantic validation + one retry.
 
 All live-LLM calls (generator, judge, critic) go through this module. It is
-the single place that has to handle Ollama's failure modes: the Ollama
+the single place that has to handle Ollama's failure modes. The Ollama
 python client raises `ollama.ResponseError`/`ollama.RequestError` for
-HTTP-level failures, but a slow/overloaded server (this one is shared with
-other builders) can also surface as a bare socket `TimeoutError` that never
-gets wrapped by the client -- so that's caught explicitly here too, and both
-re-raised as a single `LLMError` callers can handle uniformly.
+HTTP-level failures, but under real load against a server shared with other
+builders, a stalled read surfaces as a raw `httpx.TimeoutException`
+(specifically `httpx.ReadTimeout`) that ollama's client does NOT catch or
+wrap -- confirmed live: a 240s-timeout call during a contended run raised
+`httpx.ReadTimeout` straight through this module uncaught, because an
+earlier version here only caught the *builtin* `TimeoutError`, which
+`httpx.ReadTimeout` is not a subclass of. Both `httpx.TimeoutException` and
+the builtin `TimeoutError` (in case a lower layer ever raises the bare
+socket version) are caught here and re-raised as a single `LLMError`
+callers can handle uniformly.
 """
 
 from __future__ import annotations
 
 import json
 
+import httpx
 import ollama
 from pydantic import BaseModel, ValidationError
 
@@ -40,7 +47,7 @@ def chat(messages: list[Message], temperature: float) -> str:
         )
     except (ollama.RequestError, ollama.ResponseError) as exc:
         raise LLMError(f"Ollama chat call failed: {exc}") from exc
-    except TimeoutError as exc:
+    except (TimeoutError, httpx.TimeoutException) as exc:
         raise LLMError(f"Ollama chat call timed out after {CONFIG.llm_timeout_s}s: {exc}") from exc
     return response["message"]["content"]
 
@@ -81,7 +88,7 @@ def generate_json(
             return schema.model_validate(data)
         except (ollama.RequestError, ollama.ResponseError) as exc:
             raise LLMError(f"Ollama JSON call failed: {exc}") from exc
-        except TimeoutError as exc:
+        except (TimeoutError, httpx.TimeoutException) as exc:
             raise LLMError(f"Ollama JSON call timed out after {CONFIG.llm_timeout_s}s: {exc}") from exc
         except (json.JSONDecodeError, ValidationError) as exc:
             last_error = exc

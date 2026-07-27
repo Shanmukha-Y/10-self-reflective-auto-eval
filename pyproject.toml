@@ -8,6 +8,7 @@ authors = [
 ]
 dependencies = [
     "ollama>=0.4.0",
+    "httpx>=0.27",
     "pydantic>=2.7",
     "pyyaml>=6.0",
     "click>=8.1",
