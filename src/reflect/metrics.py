@@ -58,6 +58,13 @@ def _connect(db_path: Path | None = None) -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
+def get_connection(db_path: Path | None = None):
+    """Public entry point for other modules (calibrate.py) that need their
+    own tables in the same SQLite file -- keeps one DB file per run without
+    coupling calibrate.py to this module's private connection helper."""
+    return _connect(db_path)
+
+
 @dataclass
 class AttemptRecord:
     run_id: str
