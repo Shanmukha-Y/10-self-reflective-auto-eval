@@ -1,0 +1,29 @@
+name: codegen
+pass_threshold: 4.0
+criterion_floor: 3
+criteria:
+  - name: correctness
+    description: >
+      Does the code correctly implement the requested behavior, judged from
+      reading the code? (Actual test execution is checked separately, as
+      ground truth, before this judge call ever runs.)
+    anchors:
+      1: "Logic is fundamentally wrong for the stated task."
+      3: "Core logic is right but mishandles at least one edge case (e.g. empty input, boundary value) visible on inspection."
+      5: "Logic correctly handles the stated behavior and the edge cases implied by the task."
+  - name: readability
+    description: >
+      Is the code reasonably clear -- sensible names, no dead code, no
+      unnecessary complexity for a task this small?
+    anchors:
+      1: "Cryptic names, dead code, or needlessly convoluted control flow for a task this small."
+      3: "Understandable but has at least one unclear name or an unnecessarily roundabout approach."
+      5: "Clear names, minimal and direct implementation, easy to verify by reading."
+  - name: robustness
+    description: >
+      Does the code guard against inputs the task description implies it
+      should handle (empty collections, None, boundary values)?
+    anchors:
+      1: "Will raise an unhandled exception or silently misbehave on an input the task clearly implies should be handled."
+      3: "Handles the common case but is silent about at least one implied edge case (may accidentally work, but shows no evidence of having considered it)."
+      5: "Explicitly handles every edge case implied by the task description."

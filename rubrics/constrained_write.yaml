@@ -1,0 +1,28 @@
+name: constrained_write
+pass_threshold: 4.0
+criterion_floor: 3
+criteria:
+  - name: constraint_adherence
+    description: >
+      Does the output satisfy every explicit constraint stated in the task
+      (length, required facts, required structure, tone)?
+    anchors:
+      1: "Violates two or more explicit constraints, or violates one constraint that is central to the task (e.g. a required fact is missing entirely)."
+      3: "Satisfies most constraints but violates one minor constraint (e.g. slightly over a soft length target, or tone drifts briefly)."
+      5: "Satisfies every explicit constraint exactly as stated."
+  - name: coherence
+    description: >
+      Does the writing flow logically and read as a single coherent piece
+      rather than disconnected fragments?
+    anchors:
+      1: "Reads as disconnected fragments, or contradicts itself between sentences."
+      3: "Mostly coherent but has one abrupt transition or a sentence that doesn't fit the flow."
+      5: "Flows naturally from beginning to end with no jarring transitions or contradictions."
+  - name: tone_fit
+    description: >
+      Does the writing match the tone or register the task asked for (e.g.
+      formal, playful, urgent)?
+    anchors:
+      1: "Tone is opposite or clearly mismatched to what was requested."
+      3: "Tone is broadly right but slips in at least one sentence (e.g. one line too casual in an otherwise formal piece)."
+      5: "Tone is consistent with the request in every sentence."

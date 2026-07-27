@@ -1,0 +1,28 @@
+name: summarize
+pass_threshold: 4.0
+criterion_floor: 3
+criteria:
+  - name: faithfulness
+    description: >
+      Does the summary avoid introducing claims, numbers, or conclusions
+      that are not directly supported by the source text?
+    anchors:
+      1: "Contains at least one fabricated fact, invented statistic, or conclusion the source does not support."
+      3: "Faithful to the source's main claims but includes a minor unsupported inference or a subtly overstated conclusion."
+      5: "Every claim in the summary is directly traceable to a specific statement in the source text."
+  - name: coverage
+    description: >
+      Does the summary capture the source's main point and its important
+      supporting points, without omitting anything essential?
+    anchors:
+      1: "Misses the central point of the source entirely, or focuses on a minor tangent instead."
+      3: "Captures the main point but omits at least one clearly important supporting point."
+      5: "Captures the main point and every significant supporting point a careful reader would expect."
+  - name: concision
+    description: >
+      Is the summary appropriately brief, free of filler, hedging, and
+      near-verbatim restatement of source sentences?
+    anchors:
+      1: "Padded with filler phrases, restates source sentences near-verbatim, or is needlessly long for the content."
+      3: "Reasonably tight but has at least one sentence that could be cut without losing information."
+      5: "Every sentence carries distinct information; nothing could be removed without losing content."
