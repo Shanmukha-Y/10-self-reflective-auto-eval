@@ -1,0 +1,14 @@
+id: summarize_07
+domain: summarize
+title: 'Summarize: summarize_07'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A mid-sized software company reported quarterly revenue of $128 million, up 9% year over year
+  but below analyst expectations of $135 million. The shortfall was attributed to slower renewal rates
+  among enterprise customers, though new customer acquisition grew 22%. The company's stock fell 11% in
+  after-hours trading. Management maintained full-year guidance, saying the renewal slowdown was concentrated
+  in one large customer segment they expect to stabilize next quarter.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

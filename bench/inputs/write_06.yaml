@@ -1,0 +1,12 @@
+id: write_06
+domain: constrained_write
+title: Price increase notice
+instructions: Write a respectful, matter-of-fact notice (50-80 words) telling subscribers the monthly
+  price is rising from $12 to $15 starting next billing cycle, with no change to features.
+rubric_name: constrained_write
+hard:
+  min_words: 50
+  max_words: 80
+  must_include_all:
+  - $12
+  - $15

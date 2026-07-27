@@ -1,0 +1,15 @@
+id: summarize_06
+domain: summarize
+title: 'Summarize: summarize_06'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A new archaeological dig in northern Portugal uncovered a Roman-era grain storage complex
+  believed to date to the 2nd century CE, based on pottery shards found alongside the foundations. The
+  complex includes eleven separate storage pits lined with clay, far more than typical for a farming settlement
+  of the estimated size, leading researchers to suggest it served as a regional distribution point rather
+  than a single farm's storage. Excavation is ongoing and full results are not expected to be published
+  for at least another year.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

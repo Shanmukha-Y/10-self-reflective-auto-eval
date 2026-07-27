@@ -1,0 +1,14 @@
+id: codegen_02
+domain: codegen
+title: Remove duplicates preserving order
+instructions: Write a Python function that returns a list with duplicate values removed, keeping the first
+  occurrence of each value and preserving original order.
+rubric_name: codegen
+code:
+  function_name: dedupe
+  starter_signature: 'def dedupe(items: list) -> list:'
+  test_asserts:
+  - assert dedupe([1, 2, 2, 3, 1]) == [1, 2, 3]
+  - assert dedupe([]) == []
+  - assert dedupe([1, 1, 1]) == [1]
+  - assert dedupe(['a', 'b', 'a', 'c']) == ['a', 'b', 'c']

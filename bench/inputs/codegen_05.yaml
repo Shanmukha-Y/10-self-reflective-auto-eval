@@ -1,0 +1,14 @@
+id: codegen_05
+domain: codegen
+title: First non-repeating character
+instructions: Write a Python function that returns the first character in a string that does not repeat
+  elsewhere in the string. Handle edge cases sensibly.
+rubric_name: codegen
+code:
+  function_name: first_unique_char
+  starter_signature: 'def first_unique_char(text: str) -> str | None:'
+  test_asserts:
+  - assert first_unique_char('swiss') == 'w'
+  - assert first_unique_char('aabb') is None
+  - assert first_unique_char('') is None
+  - assert first_unique_char('z') == 'z'

@@ -1,0 +1,14 @@
+id: codegen_07
+domain: codegen
+title: Flatten one level of nested lists
+instructions: Write a Python function that flattens a list containing a mix of numbers and lists of numbers
+  by exactly one level (do not recursively flatten nested lists inside nested lists).
+rubric_name: codegen
+code:
+  function_name: flatten_one
+  starter_signature: 'def flatten_one(items: list) -> list:'
+  test_asserts:
+  - assert flatten_one([1, [2, 3], 4]) == [1, 2, 3, 4]
+  - assert flatten_one([]) == []
+  - assert flatten_one([[1, [2]], 3]) == [1, [2], 3]
+  - assert flatten_one([[], 1, []]) == [1]

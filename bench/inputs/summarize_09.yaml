@@ -1,0 +1,15 @@
+id: summarize_09
+domain: summarize
+title: 'Summarize: summarize_09'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A consumer electronics manufacturer issued a voluntary recall of 80,000 portable chargers
+  sold over the past year after receiving 14 reports of the devices overheating, including three that
+  caused minor burns. The affected units were sold under a single model number through both the company's
+  website and major retailers. The company is offering free replacements and says the cause was a faulty
+  batch of internal temperature sensors from one supplier, which has since been replaced for all units
+  still in production.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

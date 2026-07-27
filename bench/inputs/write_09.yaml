@@ -1,0 +1,13 @@
+id: write_09
+domain: constrained_write
+title: Safety recall notice
+instructions: Write a serious, urgent safety notice (60-90 words) about a recalled product due to a fire
+  risk, instructing customers to stop using it immediately and register for a free replacement.
+rubric_name: constrained_write
+hard:
+  min_words: 60
+  max_words: 90
+  must_include_all:
+  - fire risk
+  - free replacement
+  - stop using

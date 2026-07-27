@@ -1,0 +1,15 @@
+id: summarize_08
+domain: summarize
+title: 'Summarize: summarize_08'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A national park service study tracking wolf reintroduction over 15 years found that elk populations
+  in the study area declined by 60%, while beaver dam counts increased roughly fourfold over the same
+  period. Researchers attribute the beaver increase to elk spending less time grazing along streambanks,
+  allowing willow and aspen saplings -- beaver food sources -- to recover. The study describes this as
+  an example of a trophic cascade but notes that drought conditions during the same period may also have
+  contributed to vegetation changes.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

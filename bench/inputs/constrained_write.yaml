@@ -1,0 +1,13 @@
+id: constrained_write
+domain: constrained_write
+title: Apology email for a delayed order
+instructions: Write a formal apology email (60-90 words) to a customer whose order shipped 5 days late.
+  The tone must be formal and sincere throughout -- no casual language or jokes.
+rubric_name: constrained_write
+hard:
+  min_words: 60
+  max_words: 90
+  must_include_all:
+  - 5 days
+  - sincer
+  - refund

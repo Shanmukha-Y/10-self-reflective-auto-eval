@@ -1,0 +1,16 @@
+id: summarize_02
+domain: summarize
+title: 'Summarize: summarize_02'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: The city council voted 6-3 on Tuesday to approve a $40 million bond measure for repairing
+  the downtown water main system, which has caused twelve major breaks in the past two years. The bonds
+  will be repaid over 20 years through a small increase in water utility bills, adding roughly $4 per
+  household per month starting next fiscal year. Council members who opposed the measure argued the city
+  should have pursued state infrastructure grants first. Construction is expected to begin in the spring
+  and take approximately 18 months, with work concentrated on Main Street and the surrounding four-block
+  business district.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

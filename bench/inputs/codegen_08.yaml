@@ -1,0 +1,14 @@
+id: codegen_08
+domain: codegen
+title: Factorial
+instructions: Write a Python function that computes the factorial of a non-negative integer iteratively
+  (no recursion).
+rubric_name: codegen
+code:
+  function_name: factorial
+  starter_signature: 'def factorial(n: int) -> int:'
+  test_asserts:
+  - assert factorial(5) == 120
+  - assert factorial(0) == 1
+  - assert factorial(1) == 1
+  - assert factorial(10) == 3628800

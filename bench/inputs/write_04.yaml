@@ -1,0 +1,13 @@
+id: write_04
+domain: constrained_write
+title: Event invitation
+instructions: Write a friendly, welcoming invitation (50-80 words) to the company's annual holiday party
+  on December 14th at the downtown office, RSVP by December 1st.
+rubric_name: constrained_write
+hard:
+  min_words: 50
+  max_words: 80
+  must_include_all:
+  - December 14
+  - December 1
+  - RSVP

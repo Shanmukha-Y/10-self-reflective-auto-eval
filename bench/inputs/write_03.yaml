@@ -1,0 +1,12 @@
+id: write_03
+domain: constrained_write
+title: Service outage notice
+instructions: Write an urgent but calm outage notice (40-70 words) telling customers the payment system
+  is down and expected back online by 6 PM, with no data loss.
+rubric_name: constrained_write
+hard:
+  min_words: 40
+  max_words: 70
+  must_include_all:
+  - 6 PM
+  - no data

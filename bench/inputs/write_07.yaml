@@ -1,0 +1,13 @@
+id: write_07
+domain: constrained_write
+title: Cancellation policy explanation
+instructions: 'Write a neutral, clear explanation (50-80 words) of a cancellation policy: full refund
+  within 14 days, 50% refund within 30 days, no refund after that.'
+rubric_name: constrained_write
+hard:
+  min_words: 50
+  max_words: 80
+  must_include_all:
+  - 14 days
+  - 30 days
+  - 50%

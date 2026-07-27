@@ -1,0 +1,13 @@
+id: write_02
+domain: constrained_write
+title: Product launch announcement
+instructions: Write an upbeat, energetic product announcement (50-80 words) for a new noise-cancelling
+  headphone launching next month at $199, with 30-hour battery life.
+rubric_name: constrained_write
+hard:
+  min_words: 50
+  max_words: 80
+  must_include_all:
+  - $199
+  - 30-hour
+  - noise-cancelling

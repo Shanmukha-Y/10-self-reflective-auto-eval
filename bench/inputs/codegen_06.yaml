@@ -1,0 +1,14 @@
+id: codegen_06
+domain: codegen
+title: Palindrome check ignoring case and spaces
+instructions: Write a Python function that checks whether a string is a palindrome, ignoring case, spaces,
+  and punctuation.
+rubric_name: codegen
+code:
+  function_name: is_palindrome
+  starter_signature: 'def is_palindrome(text: str) -> bool:'
+  test_asserts:
+  - assert is_palindrome('A man a plan a canal Panama') is True
+  - assert is_palindrome('') is True
+  - assert is_palindrome('Hello') is False
+  - assert is_palindrome('Was it a car or a cat I saw?') is True

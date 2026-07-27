@@ -1,0 +1,15 @@
+id: summarize_03
+domain: summarize
+title: 'Summarize: summarize_03'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: Researchers at a materials science lab developed a new battery electrolyte that retains 94%
+  of its capacity after 2,000 charge cycles, compared to roughly 80% for standard lithium-ion electrolytes
+  tested under identical conditions. The gain comes from a polymer additive that reduces dendrite formation
+  on the anode. The electrolyte was tested only in coin-cell prototypes so far; the team says scaling
+  to full battery packs and confirming manufacturing cost are the next steps before any commercial application.
+  No timeline for commercialization was given.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

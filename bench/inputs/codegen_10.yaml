@@ -1,0 +1,14 @@
+id: codegen_10
+domain: codegen
+title: Word frequency count
+instructions: Write a Python function that returns a dictionary mapping each word in a string to the number
+  of times it appears, treating words case-insensitively and splitting on whitespace.
+rubric_name: codegen
+code:
+  function_name: word_freq
+  starter_signature: 'def word_freq(text: str) -> dict:'
+  test_asserts:
+  - 'assert word_freq(''the cat and the dog'') == {''the'': 2, ''cat'': 1, ''and'': 1, ''dog'': 1}'
+  - assert word_freq('') == {}
+  - 'assert word_freq(''Cat cat CAT'') == {''cat'': 3}'
+  - 'assert word_freq(''one'') == {''one'': 1}'

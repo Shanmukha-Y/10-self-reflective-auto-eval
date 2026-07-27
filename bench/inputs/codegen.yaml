@@ -1,0 +1,14 @@
+id: codegen
+domain: codegen
+title: Average of a list
+instructions: Write a Python function that returns the average of a list of numbers as a float. Handle
+  edge cases sensibly.
+rubric_name: codegen
+code:
+  function_name: average
+  starter_signature: 'def average(nums: list[float]) -> float:'
+  test_asserts:
+  - assert average([1, 2, 3]) == 2.0
+  - assert average([]) == 0.0
+  - assert average([5]) == 5.0
+  - assert abs(average([1, 2]) - 1.5) < 1e-9

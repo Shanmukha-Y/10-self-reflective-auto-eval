@@ -1,0 +1,13 @@
+id: write_08
+domain: constrained_write
+title: New hire welcome message
+instructions: Write a warm, casual welcome message (40-70 words) to a new employee, mentioning their start
+  date of Monday and that their laptop will be ready at the front desk.
+rubric_name: constrained_write
+hard:
+  min_words: 40
+  max_words: 70
+  must_include_all:
+  - Monday
+  - laptop
+  - front desk

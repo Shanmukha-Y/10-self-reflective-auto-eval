@@ -1,0 +1,13 @@
+id: write_10
+domain: constrained_write
+title: Meeting reschedule notice
+instructions: Write a brief, professional notice (30-50 words) that Thursday's 2 PM team meeting has been
+  moved to Friday at 10 AM in Conference Room B.
+rubric_name: constrained_write
+hard:
+  min_words: 30
+  max_words: 50
+  must_include_all:
+  - Friday
+  - 10 AM
+  - Conference Room B

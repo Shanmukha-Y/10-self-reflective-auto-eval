@@ -1,0 +1,14 @@
+id: summarize_04
+domain: summarize
+title: 'Summarize: summarize_04'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A regional airline announced it will cut 15% of its domestic routes starting next quarter,
+  citing rising fuel costs and a pilot shortage that has forced it to ground six aircraft. The affected
+  routes are mostly short regional hops between smaller airports, while major hub-to-hub routes are unaffected.
+  The airline said roughly 200 employees, mostly ground crew at the smaller airports, will be offered
+  relocation or severance. Competing carriers have not announced plans to add service on the dropped routes.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

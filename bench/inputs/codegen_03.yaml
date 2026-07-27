@@ -1,0 +1,14 @@
+id: codegen_03
+domain: codegen
+title: Second largest unique value
+instructions: Write a Python function that returns the second largest unique value in a list of integers.
+  Handle edge cases sensibly.
+rubric_name: codegen
+code:
+  function_name: second_largest
+  starter_signature: 'def second_largest(nums: list[int]) -> int | None:'
+  test_asserts:
+  - assert second_largest([1, 3, 2]) == 2
+  - assert second_largest([5, 5, 5]) is None
+  - assert second_largest([7]) is None
+  - assert second_largest([4, 4, 3, 2]) == 3

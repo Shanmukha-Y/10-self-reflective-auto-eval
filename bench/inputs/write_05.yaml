@@ -1,0 +1,13 @@
+id: write_05
+domain: constrained_write
+title: Warranty explanation
+instructions: Write a clear, formal explanation (60-100 words) of a 2-year limited warranty that covers
+  manufacturing defects but not accidental damage, and requires the original receipt.
+rubric_name: constrained_write
+hard:
+  min_words: 60
+  max_words: 100
+  must_include_all:
+  - 2-year
+  - receipt
+  - accidental damage

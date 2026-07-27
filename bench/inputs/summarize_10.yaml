@@ -1,0 +1,15 @@
+id: summarize_10
+domain: summarize
+title: 'Summarize: summarize_10'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A state legislature passed a bill requiring all public high schools to offer at least one
+  personal finance course as a graduation requirement starting in two years. The bill passed with bipartisan
+  support after amendments added flexibility for smaller districts to fold the material into existing
+  economics classes rather than hire new staff. Some education advocates argued the timeline is too short
+  for rural districts to prepare curriculum and train teachers, while the bill's sponsors said a two-year
+  runway matches what neighboring states used successfully.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

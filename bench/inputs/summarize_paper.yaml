@@ -1,0 +1,17 @@
+id: summarize_paper
+domain: summarize
+title: 'Summarize: summarize_paper'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A team of marine biologists tracked 42 loggerhead sea turtles over three years using satellite
+  tags to study migration patterns in the North Atlantic. The turtles traveled an average of 3,800 kilometers
+  between nesting beaches in Florida and foraging grounds near the Azores, with individual variation ranging
+  from 2,100 to 6,300 kilometers. The study found that turtles consistently returned to the same foraging
+  grounds across multiple years, suggesting strong site fidelity. Water temperature was the strongest
+  predictor of foraging ground selection, more so than distance from the nesting beach. The researchers
+  concluded that protecting these specific foraging areas, not just nesting beaches, should be a conservation
+  priority.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

@@ -1,0 +1,15 @@
+id: summarize_05
+domain: summarize
+title: 'Summarize: summarize_05'
+instructions: Summarize the following text in at most 3 sentences (roughly 40-60 words). Do not include
+  any claim, number, or conclusion that is not directly stated in the text.
+input_text: A clinical trial of 340 patients with moderate chronic insomnia found that a 10-week course
+  of cognitive behavioral therapy delivered via a smartphone app reduced time-to-fall-asleep by an average
+  of 22 minutes, compared to 6 minutes in the control group that received sleep hygiene pamphlets. Improvements
+  were largely maintained at a 6-month follow-up. The study was not able to determine whether in-person
+  therapist contact would have produced better results, since no in-person arm was included in the trial
+  design.
+rubric_name: summarize
+hard:
+  min_words: 15
+  max_words: 70

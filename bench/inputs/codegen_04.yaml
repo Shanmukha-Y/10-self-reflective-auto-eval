@@ -1,0 +1,14 @@
+id: codegen_04
+domain: codegen
+title: Count vowels case-insensitively
+instructions: Write a Python function that counts the number of vowels (a, e, i, o, u) in a string, ignoring
+  case.
+rubric_name: codegen
+code:
+  function_name: count_vowels
+  starter_signature: 'def count_vowels(text: str) -> int:'
+  test_asserts:
+  - assert count_vowels('Hello World') == 3
+  - assert count_vowels('') == 0
+  - assert count_vowels('AEIOU') == 5
+  - assert count_vowels('xyz') == 0
