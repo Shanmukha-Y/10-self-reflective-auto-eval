@@ -322,26 +322,204 @@ uv run pytest -m integration
 </p>
 
 <h2>Demo walkthrough: a real fail &rarr; constrain &rarr; pass cycle</h2>
-<p id="demo-cycle-intro">RESULTS_PLACEHOLDER_DEMO_CYCLE</p>
+<p>
+  This is an actual live transcript from <code>uv run reflect run --task constrained_write
+  --show-cycles</code> against <code>qwen3.5:9b</code>, not a constructed example. The task:
+  a formal apology email, 60-90 words, that must mention "5 days," sincerity, and a refund.
+</p>
+<div class="card">
+  <div class="attempt-block fail">
+    <div class="attempt-label">Attempt 1 <span class="badge badge-fail">hard check: FAIL</span></div>
+    <p style="font-style:italic;color:var(--ink-dim);">"Dear Valued Client, We sincerely apologize for shipping your order five days past the
+    expected date. This delay caused significant inconvenience&hellip; Please accept this
+    discount code as a token of appreciation&hellip;"</p>
+    <p>
+      85 words (in range) and "sincer" is present &mdash; but the model wrote
+      <strong>"five days"</strong> where the task required the literal phrase
+      <strong>"5 days,"</strong> and offered a "discount code" instead of the required word
+      "refund." Both are real, specific misses, not fabricated ones. This never reaches the
+      judge: it fails two deterministic <code>must_include</code> checks, so
+      <code>constraints_from_hard_checks()</code> compiles them directly into constraints
+      with zero LLM calls spent:
+    </p>
+    <pre><code>- You must explicitly mention: "5 days".
+- You must explicitly mention: "refund".</code></pre>
+  </div>
+  <div class="attempt-block pass">
+    <div class="attempt-label">Attempt 2 (constraints carried in, not the attempt-1 text) <span class="badge badge-pass">judge: PASS, mean 5.0/5</span></div>
+    <p style="font-style:italic;color:var(--ink-dim);">"Dear Valued Customer, We sincerely apologize that your order shipped <strong>5 days</strong>
+    later than expected&hellip; we are processing a partial <strong>refund</strong> on the
+    affected items immediately&hellip;"</p>
+    <p>
+      Both phrases appear verbatim. Hard checks pass, the blind judge scores all three
+      criteria (constraint_adherence, coherence, tone_fit) 5/5, and the run is accepted.
+      The generator never saw its own attempt-1 draft &mdash; only the two constraints above
+      &mdash; which is the actual design thesis, not a slogan: the model fixed the two named
+      requirements without collaterally rewriting the parts that were already fine.
+    </p>
+  </div>
+</div>
 
 <h2>Codegen: tests as ground truth, not judge opinion</h2>
-<p id="demo-codegen-intro">RESULTS_PLACEHOLDER_CODEGEN</p>
+<p>
+  Same live-run discipline, task: "write a function that returns the average of a list of
+  numbers... Handle edge cases sensibly" &mdash; deliberately vague about what an empty list
+  should do, which is exactly the kind of edge case a fluent-looking first draft tends to
+  miss or handle differently than the test suite expects.
+</p>
+<div class="card">
+  <div class="attempt-block fail">
+    <div class="attempt-label">Attempt 1 <span class="badge badge-fail">3/4 tests passed</span></div>
+<pre><code>def average(nums: list[float]) -> float:
+    if not nums:
+        raise ValueError("Cannot calculate mean of an empty sequence")
+    return sum(nums) / len(nums)</code></pre>
+    <p>
+      Reasonable-looking code &mdash; raising on empty input is a defensible API choice in the
+      abstract. It just isn't what this task's ground truth expects
+      (<code>assert average([]) == 0.0</code>), and the sandbox is the arbiter, not a judge's
+      opinion about whether raising was "reasonable." The failing test case's actual
+      exception is compiled straight into the next attempt's constraint:
+    </p>
+    <pre><code>Fix test case 1: it currently fails with ValueError: Cannot calculate mean of an empty sequence.</code></pre>
+  </div>
+  <div class="attempt-block pass">
+    <div class="attempt-label">Attempt 2 <span class="badge badge-pass">4/4 tests passed, judge: PASS 5.0/5</span></div>
+<pre><code>def average(nums: list[float]) -> float:
+    if len(nums) == 0:
+        return 0.0
+    return sum(nums) / len(nums)</code></pre>
+    <p>
+      All 4 sandboxed tests pass. Only now does the judge run at all &mdash; scoring
+      correctness/readability/robustness on code that already has real ground truth behind
+      it, not instead of it.
+    </p>
+  </div>
+</div>
+<p>
+  A second live codegen run needed <em>three</em> attempts (attempts 1 and 2 both stuck at
+  3/4 passing on a different task before attempt 3 cleared all tests) &mdash; the loop doesn't
+  assume one round of constraints always fixes everything, and <code>max_attempts</code> exists
+  for exactly that case.
+</p>
 
 <h2>Measured results</h2>
-<p id="results-intro">RESULTS_PLACEHOLDER_METRICS</p>
+<div class="caveat">
+  <strong>Scale, honestly stated:</strong> this is 5 live runs total (1 summarize, 2
+  constrained_write, 2 codegen) across two live sessions on a shared Ollama instance &mdash;
+  enough to prove the loop and the metrics pipeline work end to end on real model output, not
+  enough to be a statistically meaningful pass@k estimate. The 30-instance bench
+  (<code>reflect bench</code> / <code>bench/run_bench.py</code>) is built, tested, and one
+  command away; it was not run live for this README for the reasons in "Install and run"
+  above.
+</div>
+<div class="table-wrap">
+<table>
+<tr><th>domain</th><th>pass@1</th><th>pass@3</th><th>lift</th><th>n (runs)</th></tr>
+<tr><td>codegen</td><td><span class="badge badge-fail">0%</span></td><td><span class="badge badge-pass">100%</span></td><td>+100pp</td><td>2</td></tr>
+<tr><td>constrained_write</td><td><span class="badge badge-fail">0%</span></td><td><span class="badge badge-pass">100%</span></td><td>+100pp</td><td>2</td></tr>
+<tr><td>summarize</td><td><span class="badge badge-pass">100%</span></td><td><span class="badge badge-pass">100%</span></td><td>+0pp</td><td>1</td></tr>
+</table>
+</div>
+<img class="chart" src="reports/pass_at_k.png" alt="pass@1 vs pass@3 bar chart by domain">
+<p style="margin-top:16px;">
+  Every codegen and constrained_write run in this sample failed attempt 1 and passed by
+  attempt 2 or 3 &mdash; regeneration did the job it exists to do, on real model output, every
+  time it was tried live. The flip side, stated plainly: n=1-2 per domain means "0%
+  pass@1" here is not a claim that qwen3.5:9b fails these task types most of the time, just
+  that it did in this specific small sample.
+</p>
+<img class="chart" src="reports/score_by_attempt.png" alt="mean judge score by attempt number line chart" style="margin-top:20px;">
+<p>
+  This chart is flat at 5.0 across all three attempt numbers, and that flatness is itself a
+  real finding worth explaining rather than a boring chart to skip past: in every one of
+  these 5 live runs, <strong>every failure was caught by a deterministic hard check</strong>
+  (a missing phrase, a failing test), so the judge only ever scored the attempt that had
+  already cleared hard checks &mdash; and it scored that attempt 5/5 every single time. The
+  judge's own before/after trajectory isn't what demonstrates improvement in this sample;
+  the hard-check pass/fail transition is. That's the architecture working as designed
+  (cheap deterministic gate catches what it can, judge tokens spent only on what's left),
+  but it also means this particular small sample can't speak to whether the judge itself
+  would show a rising-score trend on failures it actually had to grade &mdash; a fair question
+  the criterion heatmap below and a larger bench run would need to answer.
+</p>
+<img class="chart" src="reports/criterion_heatmap.png" alt="mean criterion score heatmap by domain" style="margin-top:20px;">
 
 <h2>Calibration: how much to trust the judge</h2>
-<p id="calibration-intro">RESULTS_PLACEHOLDER_CALIBRATION</p>
+<p>
+  8-instance codegen subset, <code>uv run reflect calibrate --n 8</code>, run live twice: the
+  first run crashed the entire batch when instance #3's judge call hit the (then-240s)
+  timeout &mdash; a real bug, not a hypothetical one, described in the limitations below. After
+  fixing per-instance error isolation and checkpointing, the rerun completed cleanly:
+</p>
+<div class="statrow">
+  <div class="stat"><div class="num">7 / 8</div><div class="label">instances completed</div></div>
+  <div class="stat"><div class="num">1</div><div class="label">recorded failure (not silently dropped)</div></div>
+  <div class="stat"><div class="num">100%</div><div class="label">judge/test agreement on completed instances</div></div>
+</div>
+<p style="margin-top:14px;">
+  Instance <code>codegen_07</code> failed with <code>Ollama chat call timed out after 300.0s:
+  timed out</code> &mdash; recorded in <code>data/calibration_checkpoint.json</code> and the
+  CLI output, not swallowed. That's the point of the fix: a calibration run that silently
+  returns 0/8 because one call timed out is worse than useless, it's misleading.
+</p>
+<img class="chart" src="reports/calibration_confusion_matrix.png" alt="judge vs ground truth confusion matrix for codegen calibration subset" style="max-width:420px;">
+<div class="caveat">
+  <strong>The honest reading of this result, not the flattering one:</strong> on all 7
+  completed instances, qwen3.5:9b's generated code passed every ground-truth test, and the
+  judge correctly scored all 7 as passing &mdash; 7 true positives, zero false positives, zero
+  false negatives, zero true negatives. Accuracy reads as 100% and the false-positive rate is
+  mathematically undefined (n/a), because <strong>this sample contains no instance where the
+  tests actually failed</strong> &mdash; there was no broken code for the judge to either
+  correctly flag or wrongly wave through. This run demonstrates the calibration machinery
+  works end to end and found no counter-evidence of judge miscalibration in 7 instances; it
+  does <em>not</em> demonstrate a 0% false-positive rate as a general property, because the
+  dangerous case (bad code the judge rates highly) never occurred in this particular sample
+  for this to measure. A larger or deliberately harder-instance run is what would actually
+  stress-test that number, and the tooling (<code>reflect calibrate --n N</code>) supports it.
+</div>
+
+<h2>What live testing actually found</h2>
+<p>
+  Two real bugs surfaced only once real model calls under real load entered the picture, and
+  both are worth stating plainly rather than folding into a changelog no one reads:
+</p>
+<ul>
+  <li>
+    <strong>A live 3-domain cycle run timed out on <code>summarize</code></strong> with an
+    uncaught <code>httpx.ReadTimeout</code>. Root cause: the Ollama python client lets that
+    exception propagate directly under load, and it is <em>not</em> a subclass of Python's
+    builtin <code>TimeoutError</code> &mdash; which is the only timeout type the original
+    code caught. Fixed by catching <code>httpx.TimeoutException</code> explicitly; a mocked
+    regression test reproduces the exact exception via <code>monkeypatch</code> so this
+    can't silently regress.
+  </li>
+  <li>
+    <strong>The first live calibration run crashed entirely</strong> when one of 8 instances
+    hit a judge timeout &mdash; a single <code>LLMError</code> in an unguarded list
+    comprehension took down every result already gathered. Fixed with per-instance
+    try/except and a checkpoint file written after every instance, so 7/8 completing with
+    1 recorded failure is now the actual behavior, not 0/8 with a stack trace. A scripted
+    regression test asserts both the failure isolation and that the checkpoint file reflects
+    progress mid-run, not just at the end.
+  </li>
+</ul>
+<p>
+  Both fixes shipped with tests that fail against the pre-fix code and pass against the
+  fix &mdash; the standard this project holds its own claims to elsewhere.
+</p>
 
 <h2>Honest limitations</h2>
 <ul>
   <li>
     <strong>The judge is not independent of the generator.</strong> Blindness, anchoring,
-    and temperature 0 reduce the self-bias problem; they don't eliminate it. The measured
-    false-positive rate in Section 6 is the actual size of the remaining gap on codegen,
-    where it's measurable. Summarization and constrained writing have no equivalent ground
-    truth, so their judge scores carry the same unmeasured uncertainty the calibration
-    section exists to make visible for codegen.
+    and temperature 0 reduce the self-bias problem; they don't eliminate it. The codegen
+    calibration run above found no counter-evidence across 7 completed instances, but the
+    sample contained no actual test failures for the judge to potentially wave through
+    &mdash; so it establishes the calibration machinery works, not a general false-positive
+    rate. Summarization and constrained writing have no equivalent ground truth at all, so
+    their judge scores carry the same unmeasured uncertainty the calibration section exists
+    to make visible for codegen, with no way to measure it directly.
   </li>
   <li>
     <strong>No independent human-agreement numbers are claimed here.</strong> The spec calls
