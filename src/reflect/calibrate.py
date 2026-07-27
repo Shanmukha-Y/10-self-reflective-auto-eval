@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 
@@ -30,6 +31,7 @@ from reflect.config import CONFIG
 from reflect.generator import generate
 from reflect.hard_checks import HardCheckResult, run_hard_checks
 from reflect.judge import JudgeResult, judge
+from reflect.llm import LLMError
 from reflect.tasks import Task, all_bench_tasks
 
 _CALIBRATION_SCHEMA = """
@@ -55,6 +57,17 @@ class CalibrationSample(BaseModel):
     judge_mean: float
     hard: HardCheckResult
     judge_result: JudgeResult
+
+
+class CalibrationFailure(BaseModel):
+    """One instance that could not be sampled -- a live-call failure (LLM
+    timeout, malformed judge output after retries, etc.), recorded as data
+    rather than allowed to kill the whole batch. A calibration run with
+    7/8 completed and 1 recorded failure is valid; a run that returns
+    nothing because instance #3 of 8 timed out is not."""
+
+    task_id: str
+    error: str
 
 
 class ConfusionMatrix(BaseModel):
@@ -123,29 +136,75 @@ def _calibration_sample(task: Task) -> CalibrationSample:
     )
 
 
+def _write_checkpoint(
+    path: Path, batch: str, samples: list[CalibrationSample], failures: list[CalibrationFailure], total_planned: int
+) -> None:
+    """Overwrite the checkpoint file with current progress. Called after
+    every instance (success or failure), not just at the end -- a crash or
+    a killed process mid-batch should still leave whatever completed on
+    disk, the same discipline the live-cycle metrics store already has via
+    per-attempt logging."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "batch": batch,
+        "total_planned": total_planned,
+        "completed": [s.task_id for s in samples],
+        "failed": [{"task_id": f.task_id, "error": f.error} for f in failures],
+        "updated_at": time.time(),
+    }
+    path.write_text(json.dumps(payload, indent=2))
+
+
 def run_codegen_calibration(
     n: int = CONFIG.calibration_subset_size,
     db_path: Path | None = None,
     batch: str = "codegen_judge_vs_tests",
-) -> tuple[ConfusionMatrix, list[CalibrationSample]]:
+    checkpoint_path: Path | None = None,
+) -> tuple[ConfusionMatrix, list[CalibrationSample], list[CalibrationFailure]]:
     """Run the judge-vs-tests calibration on the first `n` codegen bench
     instances. This is the ~8-instance *subset* referenced throughout the
     README -- deliberately not the full 10 codegen instances or the whole
     30-instance bench, to keep the shared Ollama load bounded for a single
-    live verification pass."""
+    live verification pass.
+
+    Each instance's generate+judge call is isolated: an `LLMError` (a live
+    timeout, or a judge that never returned schema-valid scores even after
+    its own retry) is recorded as a `CalibrationFailure` and the batch
+    continues, rather than one bad instance discarding everything already
+    completed. Progress is checkpointed to `checkpoint_path` after every
+    instance, and each successful sample is written to the metrics DB
+    immediately rather than batched at the end, for the same reason.
+    """
+    checkpoint_path = checkpoint_path or (CONFIG.data_dir / "calibration_checkpoint.json")
     tasks = [t for t in all_bench_tasks() if t.domain == "codegen"][:n]
-    samples = [_calibration_sample(t) for t in tasks]
-    cm = confusion_matrix(samples)
+    samples: list[CalibrationSample] = []
+    failures: list[CalibrationFailure] = []
 
     with metrics.get_connection(db_path) as conn:
         conn.execute(_CALIBRATION_SCHEMA)
-        for s in samples:
+
+    for task in tasks:
+        try:
+            sample = _calibration_sample(task)
+        except LLMError as exc:
+            failures.append(CalibrationFailure(task_id=task.id, error=str(exc)))
+            _write_checkpoint(checkpoint_path, batch, samples, failures, len(tasks))
+            continue
+
+        samples.append(sample)
+        with metrics.get_connection(db_path) as conn:
             conn.execute(
                 "INSERT INTO calibration (batch, task_id, output, tests_passed, judge_says_pass, "
                 "judge_mean, external_label, ts) VALUES (?,?,?,?,?,?,?,?)",
-                (batch, s.task_id, s.output, int(s.tests_passed), int(s.judge_says_pass), s.judge_mean, None, time.time()),
+                (
+                    batch, sample.task_id, sample.output, int(sample.tests_passed),
+                    int(sample.judge_says_pass), sample.judge_mean, None, time.time(),
+                ),
             )
-    return cm, samples
+        _write_checkpoint(checkpoint_path, batch, samples, failures, len(tasks))
+
+    cm = confusion_matrix(samples)
+    return cm, samples, failures
 
 
 def fetch_calibration(batch: str | None = None, db_path: Path | None = None) -> list[dict]:

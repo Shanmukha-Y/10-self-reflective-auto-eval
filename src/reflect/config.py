@@ -34,11 +34,18 @@ class Config:
     max_attempts: int = 3
 
     # --- LLM call tuning ---
-    # Ollama here is shared across several concurrent builders; under load a
-    # single call has been observed to take up to ~240s, so timeouts are
-    # generous and every caller also catches a bare socket TimeoutError
-    # (Ollama's client doesn't always wrap that as its own exception type).
-    llm_timeout_s: float = 240.0
+    # Measured, not guessed: two independent live timeouts were observed at
+    # the original 240s -- one on a generator call while three builders were
+    # concurrently hitting the shared Ollama instance, and a second on a
+    # judge call made with *exclusive* server access (calibrate.py), where
+    # contention from other builders can't explain it. The judge call was a
+    # generate_json() request for a full anchored 3-criterion rubric, which
+    # is a larger prompt than a typical chat() call. Rather than guess at a
+    # judge-specific override, 240s -> 300s across the board: cheap
+    # (adds latency only on the rare call that actually needs it) and
+    # addresses both observed failure modes without inventing a second knob
+    # from a sample size of two.
+    llm_timeout_s: float = 300.0
     llm_max_retries: int = 1
 
     # --- Role temperatures ---

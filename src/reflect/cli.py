@@ -115,9 +115,14 @@ def report() -> None:
 def calibrate(n: int) -> None:
     """Run the judge-vs-tests calibration subset on codegen tasks and report the confusion matrix."""
     console.print(f"Running judge-vs-tests calibration on {n} codegen instance(s)...")
-    cm, _samples = calibrate_mod.run_codegen_calibration(n=n)
+    cm, _samples, failures = calibrate_mod.run_codegen_calibration(n=n)
 
-    table = Table(title=f"Judge vs. ground truth (n={cm.total})")
+    if failures:
+        console.print(f"[yellow]{len(failures)}/{n} instance(s) failed to sample (recorded, not silently dropped):[/yellow]")
+        for f in failures:
+            console.print(f"  [yellow]- {f.task_id}: {f.error}[/yellow]")
+
+    table = Table(title=f"Judge vs. ground truth (n={cm.total} completed of {n} planned)")
     table.add_column("")
     table.add_column("judge: pass")
     table.add_column("judge: fail")
