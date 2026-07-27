@@ -85,9 +85,19 @@ def judge(task: Task, output: str) -> JudgeResult:
     prompt = _build_prompt(task, rubric, output)
 
     last_got: set[str] = set()
-    for _ in range(2):
+    for attempt in range(2):
+        # Temperature 0 is deterministic: resending the identical prompt on
+        # retry would almost certainly reproduce the identical wrong names.
+        # The second attempt appends an explicit correction instead of just
+        # re-asking -- temperature stays 0 on the *scoring* call either way.
+        this_prompt = prompt
+        if attempt > 0:
+            this_prompt += (
+                f"\n\nYour previous response used these criterion names: {sorted(last_got)}. "
+                f"That is wrong. You MUST use exactly these names, verbatim: {sorted(expected_names)}."
+            )
         result = generate_json(
-            prompt=prompt,
+            prompt=this_prompt,
             schema=JudgeResult,
             system=_JUDGE_SYSTEM,
             temperature=CONFIG.judge_temperature,
