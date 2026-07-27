@@ -1,0 +1,375 @@
+<title>Self-Reflective Agent with Auto-Eval</title>
+<style>
+  :root {
+    --bg: #f5f4f1;
+    --surface: #ffffff;
+    --surface-sunken: #ecebe6;
+    --ink: #1e211d;
+    --ink-dim: #63685f;
+    --border: #dcdad2;
+    --accent: #3a5f4f;
+    --accent-ink: #ffffff;
+    --pass: #3f7d52;
+    --pass-bg: #e8f2ea;
+    --pass-border: #bfdac8;
+    --warn: #a8701f;
+    --warn-bg: #fbf0dd;
+    --warn-border: #e9cd9a;
+    --fail: #a3372f;
+    --fail-bg: #fbeae8;
+    --fail-border: #edc0ba;
+    --code-bg: #1d2420;
+    --code-ink: #dfe7de;
+    --shadow: 0 1px 2px rgba(30, 33, 29, 0.06), 0 8px 24px -12px rgba(30, 33, 29, 0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171a; --surface: #1b1f22; --surface-sunken: #22262a;
+      --ink: #e7e5df; --ink-dim: #9aa196; --border: #33383c;
+      --accent: #7fb59c; --accent-ink: #0d1420;
+      --pass: #6bbf8a; --pass-bg: #17251c; --pass-border: #2c4433;
+      --warn: #e0ab5c; --warn-bg: #2a2114; --warn-border: #4a3a1e;
+      --fail: #e08278; --fail-bg: #2a1917; --fail-border: #4a2b27;
+      --code-bg: #0f1412; --code-ink: #d7e0d5;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171a; --surface: #1b1f22; --surface-sunken: #22262a;
+    --ink: #e7e5df; --ink-dim: #9aa196; --border: #33383c;
+    --accent: #7fb59c; --accent-ink: #0d1420;
+    --pass: #6bbf8a; --pass-bg: #17251c; --pass-border: #2c4433;
+    --warn: #e0ab5c; --warn-bg: #2a2114; --warn-border: #4a3a1e;
+    --fail: #e08278; --fail-bg: #2a1917; --fail-border: #4a2b27;
+    --code-bg: #0f1412; --code-ink: #d7e0d5;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -12px rgba(0,0,0,0.5);
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f4f1; --surface: #ffffff; --surface-sunken: #ecebe6;
+    --ink: #1e211d; --ink-dim: #63685f; --border: #dcdad2;
+    --accent: #3a5f4f; --accent-ink: #ffffff;
+    --pass: #3f7d52; --pass-bg: #e8f2ea; --pass-border: #bfdac8;
+    --warn: #a8701f; --warn-bg: #fbf0dd; --warn-border: #e9cd9a;
+    --fail: #a3372f; --fail-bg: #fbeae8; --fail-border: #edc0ba;
+    --code-bg: #1d2420; --code-ink: #dfe7de;
+    --shadow: 0 1px 2px rgba(30,33,29,0.06), 0 8px 24px -12px rgba(30,33,29,0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+  a { color: var(--accent); }
+
+  .page { max-width: 820px; margin: 0 auto; padding: 0 24px 96px; }
+
+  header.hero { padding: 64px 0 36px; border-bottom: 1px solid var(--border); }
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.72rem;
+    font-weight: 700; color: var(--ink-dim); margin: 0 0 14px;
+  }
+  h1 { font-size: clamp(1.9rem, 4.2vw, 2.7rem); line-height: 1.14; margin: 0 0 16px; text-wrap: balance; letter-spacing: -0.01em; }
+  .thesis { font-size: 1.08rem; color: var(--ink-dim); max-width: 640px; margin: 0; }
+
+  h2 {
+    font-size: 1.5rem; margin: 56px 0 18px; padding-top: 8px; letter-spacing: -0.01em;
+  }
+  h3 { font-size: 1.1rem; margin: 28px 0 10px; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; margin: 18px 0; box-shadow: var(--shadow);
+  }
+  .card-sunken { background: var(--surface-sunken); }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    background: var(--surface-sunken); border: 1px solid var(--border);
+    padding: 0.1em 0.4em; border-radius: 5px; font-size: 0.88em;
+  }
+  pre {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-size: 0.86rem; line-height: 1.55;
+    box-shadow: var(--shadow);
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--ink-dim); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .table-wrap { overflow-x: auto; }
+
+  .badge {
+    display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 3px 10px;
+    border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge-pass { background: var(--pass-bg); color: var(--pass); border: 1px solid var(--pass-border); }
+  .badge-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+  .badge-fail { background: var(--fail-bg); color: var(--fail); border: 1px solid var(--fail-border); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .stat { text-align: center; padding: 16px 10px; }
+  .stat .num { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; }
+  .stat .label { font-size: 0.78rem; color: var(--ink-dim); margin-top: 2px; }
+  .statrow { display: flex; gap: 12px; flex-wrap: wrap; }
+  .statrow .stat { flex: 1 1 130px; background: var(--surface-sunken); border-radius: 10px; }
+
+  .attempt-block {
+    border-left: 3px solid var(--border); padding: 4px 0 4px 16px; margin: 14px 0;
+  }
+  .attempt-block.pass { border-left-color: var(--pass); }
+  .attempt-block.fail { border-left-color: var(--fail); }
+  .attempt-label { font-weight: 700; font-size: 0.86rem; margin-bottom: 6px; }
+
+  .caveat {
+    border: 1px solid var(--warn-border); background: var(--warn-bg); border-radius: 10px;
+    padding: 14px 18px; font-size: 0.92rem; margin: 16px 0;
+  }
+  .caveat strong { color: var(--warn); }
+
+  img.chart { width: 100%; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); }
+
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--ink-dim); font-size: 0.86rem; }
+</style>
+
+<div class="page">
+
+<header class="hero">
+  <p class="eyebrow">Project 10 &middot; Self-Reflective Agent with Auto-Eval</p>
+  <h1>Generate &rarr; judge &rarr; critique &rarr; regenerate, with the judge's honesty measured, not assumed.</h1>
+  <p class="thesis">
+    Every output from this pipeline is scored by an LLM judge against a task-specific,
+    anchored rubric. Outputs that fail get regenerated under explicit, machine-usable
+    constraints compiled from a separate critic call &mdash; never by showing the model its
+    own bad draft. The generator, judge, and critic all run on the same local
+    <code>qwen3.5:9b</code>, which creates an obvious same-model-judge problem. This README
+    doesn't wave that away: it shows the three mitigations used (blind judging, anchored
+    rubrics, temperature 0) and then reports a measured confusion matrix of judge verdicts
+    against real test execution, including the judge's false-positive rate.
+  </p>
+</header>
+
+<h2>The problem this solves</h2>
+<p>
+  "Add a self-critique step" is a one-line prompt change. Whether it actually helps is an
+  empirical question almost nobody answers empirically &mdash; teams ship "the agent checks
+  its own work now" as a bullet point and move on. This project treats that claim as
+  something to measure: every attempt's rubric scores, hard-check results, and outcome are
+  written to a SQLite store, and <code>reflect report</code> reads pass@1 vs. pass@3 and
+  score-by-attempt off that table. If regeneration isn't actually improving anything, the
+  chart says so.
+</p>
+<p>
+  The harder problem is that the judge doing the scoring is the same 9B model that did the
+  writing. A same-model judge has no ground truth of its own to fall back on and every
+  incentive (in the statistical sense of what a next-token predictor has learned to do) to
+  rate visible effort rather than actual quality. Section 4 below is about taking that
+  seriously instead of ignoring it.
+</p>
+
+<h2>Architecture</h2>
+<div class="card card-sunken">
+<pre class="mono" style="background:none;color:inherit;box-shadow:none;padding:0;font-size:0.82rem;">Task + rubric
+   │
+   ▼
+Generator (attempt k) ──▶ Candidate output
+   │
+   ▼
+Hard checks (deterministic: word count, must-include strings;
+             code tasks: actually run the tests, sandboxed)
+   │
+   ├─ fail ──────────────────────────────┐
+   │                                     ▼
+   pass                          Constraint compiler
+   │                                     ▲
+   ▼                                     │
+LLM judge (blind: no attempt number,     │
+ no history, anchored 1-5 rubric,        │
+ temperature 0)                          │
+   │                                     │
+   ├─ pass ──▶ Accept, log scores        │
+   │                                     │
+   └─ fail ──▶ Critic (sees output +     │
+               judge scores, diagnoses   │
+               WHY, writes constraints) ─┘
+                       │
+              k < max_attempts (3)?
+               yes │         │ no
+                   ▼         ▼
+              Generator   Return best attempt,
+              (attempt    flagged below threshold
+               k+1)
+
+Every score, every cycle → SQLite metrics store → charts</pre>
+</div>
+
+<h2>Component map</h2>
+<div class="table-wrap">
+<table>
+<tr><th>Module</th><th>Responsibility</th></tr>
+<tr><td><code>tasks.py</code></td><td>Task + rubric + hard-constraint schema; loads rubrics from <code>rubrics/*.yaml</code> and task instances from <code>bench/inputs/*.yaml</code> through one shared loader.</td></tr>
+<tr><td><code>generator.py</code></td><td>Produces a candidate. Attempt <em>k&gt;1</em> receives compiled constraints from the prior failure &mdash; never the raw failed output.</td></tr>
+<tr><td><code>hard_checks.py</code></td><td>Deterministic validators (word counts, required/forbidden strings); for codegen, extracts the code and runs it in the sandbox against real tests.</td></tr>
+<tr><td><code>sandbox.py</code></td><td>Subprocess code runner: per-test-case isolation, timeout, network disabled inside the child.</td></tr>
+<tr><td><code>judge.py</code></td><td>Blind rubric scoring: task + rubric + output only, JSON scores with a justification per criterion, temperature 0.</td></tr>
+<tr><td><code>critic.py</code></td><td>Separate call: sees the judge's scores and diagnoses <em>why</em>, emits machine-usable <code>Constraint[]</code>.</td></tr>
+<tr><td><code>constraints.py</code></td><td>Compiles hard-check failures (no LLM needed) and critic output into a deduped constraint list.</td></tr>
+<tr><td><code>metrics.py</code></td><td>SQLite store for every attempt; pass@k, score-by-attempt, criterion heatmap queries and charts.</td></tr>
+<tr><td><code>calibrate.py</code></td><td>Judge-vs-tests confusion matrix on codegen; generic percent-agreement / Cohen's kappa helper.</td></tr>
+<tr><td><code>pipeline.py</code></td><td>Ties the above into the actual generate&rarr;judge&rarr;critique&rarr;regenerate loop. Not in the original file listing &mdash; factored out to avoid duplicating the loop between the CLI and the bench runner.</td></tr>
+<tr><td><code>cli.py</code></td><td><code>reflect run</code>, <code>reflect bench</code>, <code>reflect report</code>, <code>reflect calibrate</code>.</td></tr>
+</table>
+</div>
+
+<h2>Why blind judging + anchored rubrics + measured calibration</h2>
+<p>
+  The generator and judge share a model, so the self-bias problem is real, not theoretical.
+  Three mitigations, all implemented, all with a specific failure mode they target:
+</p>
+<ul>
+  <li>
+    <strong>Blind judging.</strong> <code>judge.py</code> is called with the task, the rubric,
+    and the candidate output &mdash; nothing else. No attempt number, no prior critique, no
+    "this is a retry." If the judge could see it was scoring its own second attempt after
+    being told what was wrong, a same-model judge has every incentive to reward visible
+    effort over actual quality. It never gets that context.
+  </li>
+  <li>
+    <strong>Anchored rubrics.</strong> Every criterion in every rubric YAML carries concrete
+    1/3/5 descriptions, not just a name like "coverage." A 9B model asked to freely
+    interpret a 1-5 scale produces close to noise; asked to match an output against "a 1
+    looks like X, a 5 looks like Y," it has something to anchor to. This is the single
+    biggest lever for making a small model's judgments usable at all.
+  </li>
+  <li>
+    <strong>Temperature 0 + per-criterion justification.</strong> Deterministic scoring plus
+    a forced one-sentence justification per criterion (schema-enforced via Pydantic, not
+    optional) makes the judge cite something specific from the output rather than emit a
+    bare number.
+  </li>
+</ul>
+<p>
+  None of that makes the judge unbiased. What makes the claim honest is
+  <code>calibrate.py</code>: on codegen tasks, the sandbox already has ground truth (the
+  tests actually ran) before the judge is ever asked to opine. Calibration forces a judge
+  call on every sampled attempt regardless of whether the tests passed, so "did the judge
+  say pass" and "did the tests actually pass" exist on the same output and can be
+  cross-tabulated. See the confusion matrix in Section 6 &mdash; it is the actual measured
+  answer to "how much should I trust this judge," not an assertion.
+</p>
+
+<h2>Hard checks before judge tokens</h2>
+<p>
+  A word-count violation or a missing required phrase doesn't need an LLM to diagnose. A
+  candidate that fails a hard check never reaches the judge at all &mdash; the failing
+  <code>CheckDetail</code> is compiled directly into a constraint by
+  <code>constraints.py</code>, with zero LLM calls spent. For codegen specifically, "hard
+  check" means the code is extracted and actually executed in <code>sandbox.py</code>
+  against real test cases, in a subprocess with a timeout and network access disabled. If
+  the code doesn't run, or a test fails, that's ground truth no judge opinion can override
+  &mdash; and it's also exactly the signal calibration compares the judge against.
+</p>
+
+<h2 id="results">Install and run</h2>
+<div class="card">
+<pre><code>cd 10-self-reflective-auto-eval
+uv sync
+
+# one task, watch every attempt/critique/constraint
+uv run reflect run --task constrained_write --show-cycles
+
+# summarize an arbitrary file
+uv run reflect run --task summarize_paper --input some_document.txt
+
+# list all 30 bench task ids
+uv run reflect bench --list
+
+# a quick multi-task smoke run (NOT the full 30 -- see the note below)
+uv run reflect bench --domain codegen --limit 3
+
+# charts + pass@k table from whatever's in the metrics store so far
+uv run reflect report
+
+# judge-vs-tests calibration on a codegen subset (config-driven count, default 8)
+uv run reflect calibrate --n 8
+
+# tests: fast, zero-network unit/mocked suite (default)
+uv run pytest
+# live tests against the real model (slow, needs Ollama + qwen3.5:9b)
+uv run pytest -m integration
+</code></pre>
+</div>
+<p>
+  Running the entire 30-instance bench live (<code>uv run reflect bench</code> with no
+  filters, or <code>bench/run_bench.py</code>) is supported and documented but was
+  <strong>not</strong> run in full for this README &mdash; it shares a local Ollama instance
+  with several other concurrent builders, and at up to 3 attempts &times; 3 LLM calls per
+  instance, 30 instances is a genuinely long, load-sensitive run. What follows is what was
+  actually run live: one full cycle per domain, and an 8-instance codegen calibration
+  subset.
+</p>
+
+<h2>Demo walkthrough: a real fail &rarr; constrain &rarr; pass cycle</h2>
+<p id="demo-cycle-intro">RESULTS_PLACEHOLDER_DEMO_CYCLE</p>
+
+<h2>Codegen: tests as ground truth, not judge opinion</h2>
+<p id="demo-codegen-intro">RESULTS_PLACEHOLDER_CODEGEN</p>
+
+<h2>Measured results</h2>
+<p id="results-intro">RESULTS_PLACEHOLDER_METRICS</p>
+
+<h2>Calibration: how much to trust the judge</h2>
+<p id="calibration-intro">RESULTS_PLACEHOLDER_CALIBRATION</p>
+
+<h2>Honest limitations</h2>
+<ul>
+  <li>
+    <strong>The judge is not independent of the generator.</strong> Blindness, anchoring,
+    and temperature 0 reduce the self-bias problem; they don't eliminate it. The measured
+    false-positive rate in Section 6 is the actual size of the remaining gap on codegen,
+    where it's measurable. Summarization and constrained writing have no equivalent ground
+    truth, so their judge scores carry the same unmeasured uncertainty the calibration
+    section exists to make visible for codegen.
+  </li>
+  <li>
+    <strong>No independent human-agreement numbers are claimed here.</strong> The spec calls
+    for a 20-sample human-labeled agreement check; <code>calibrate.agreement_stats()</code>
+    implements the generic percent-agreement / Cohen's kappa machinery for it, and it's
+    exercised by unit tests, but this build had no independent human rater available to
+    actually produce labels. Reporting fabricated or self-labeled-by-the-builder numbers as
+    "human agreement" would be exactly the kind of unearned confidence this project is
+    trying not to produce. The codegen judge-vs-tests confusion matrix is reported instead
+    because it needed no human and is real.
+  </li>
+  <li>
+    <strong>The 30-instance bench was not run live in full</strong> for the reasons above;
+    <code>reflect bench</code> and <code>bench/run_bench.py</code> support it and it's one
+    command away, but the numbers in this README come from a smaller, explicitly labeled
+    live run plus the mocked pipeline tests.
+  </li>
+  <li>
+    <strong>Rubric anchors were hand-written once, not iterated against disagreement data.</strong>
+    The "A/B rubric evolution" stretch goal &mdash; revising anchors where judge/human
+    disagreement clusters &mdash; needs the human-agreement data this build doesn't have, so
+    it wasn't attempted.
+  </li>
+</ul>
+
+<footer>
+  Python 3.11+, <code>uv</code>, <code>qwen3.5:9b</code> via local Ollama. Model name lives
+  in one place: <code>src/reflect/config.py</code>.
+</footer>
+
+</div>
