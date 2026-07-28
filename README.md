@@ -60,4 +60,4 @@ Every code-generation and constrained-writing run in this sample failed attempt 
 - **An identical deterministic retry cannot repair a semantic schema mismatch.** The judge's retry prompt now names the expected criterion labels instead of resending the same temperature-0 request.
 - **No human-agreement statistic is claimed.** Agreement and Cohen's kappa utilities exist and are tested, but there was no independent human rater for this build.
 
-See [readme.html](readme.html) for the full write-up, including the architecture diagram, live transcripts, and measured-result charts.
+See [readme.html](readme.html) for the original visual build artifact. This root README and `src/reflect/sandbox.py` are authoritative: the subprocess runner is a repeatability harness, not a security sandbox.
