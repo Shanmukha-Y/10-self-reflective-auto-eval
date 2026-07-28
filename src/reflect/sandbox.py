@@ -1,17 +1,20 @@
-"""Sandboxed subprocess execution for the code-task ground truth.
+"""Isolated subprocess execution for code-task ground truth.
 
-Runs generated code plus a set of assert-style test cases in a fresh
-subprocess: timeout-bounded, network calls disabled inside the child, a
-minimal environment. This is the actual ground truth for codegen tasks --
-the judge never gets an opinion on whether tests pass, they just do or
-don't, and this result also doubles as the calibration ground truth in
-calibrate.py.
+Generated code and assert-style test cases run in a fresh temporary directory
+with a bounded timeout, a minimal environment, Python isolated mode, and common
+Python socket entry points disabled inside the child. The resulting test verdict
+is the ground truth for code-generation tasks and for judge calibration.
 
-The harness script is assembled by string concatenation, not `str.format`
-or an f-string wrapping the candidate code: generated Python routinely
-contains `{`/`}` (dict literals, f-strings, comprehensions), which would
-corrupt a `.format()` template. Only trusted, self-authored fragments
-(the try/except wrapper) use f-strings.
+This is intentionally an *execution harness*, not a security sandbox. Python-level
+socket patching is bypassable, and the child is not isolated from the host kernel,
+filesystem, process table, or operating-system commands. Only run trusted benchmark
+fixtures here. Hostile or third-party code needs a real container/VM boundary with
+resource, filesystem, syscall, and network controls.
+
+The harness script is assembled by string concatenation, not ``str.format`` or an
+f-string wrapping the candidate code: generated Python routinely contains ``{`` and
+``}`` (dict literals, f-strings, comprehensions), which would corrupt a formatted
+template. Only trusted, self-authored wrapper fragments use f-strings.
 """
 
 from __future__ import annotations
@@ -23,7 +26,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from reflect.config import CONFIG
 
@@ -35,7 +38,7 @@ import json as _json
 
 
 def _network_blocked(*args, **kwargs):
-    raise RuntimeError("network access is disabled in the sandbox")
+    raise RuntimeError("network access is disabled in the execution harness")
 
 
 _socket.socket = _network_blocked
@@ -56,7 +59,7 @@ class TestCaseResult(BaseModel):
 class SandboxResult(BaseModel):
     ran: bool  # False if the process crashed before producing results (syntax error, timeout, crash)
     error: str | None = None
-    results: list[TestCaseResult] = []
+    results: list[TestCaseResult] = Field(default_factory=list)
 
     @property
     def all_passed(self) -> bool:
@@ -83,22 +86,30 @@ def _build_harness(code: str, test_asserts: list[str]) -> str:
 
 
 def run_code(code: str, test_asserts: list[str], timeout_s: float = CONFIG.sandbox_timeout_s) -> SandboxResult:
-    """Execute `code` followed by each assert in `test_asserts`, each
-    independently caught so one failing/raising case doesn't stop the rest
-    from running."""
+    """Execute candidate code and each assertion in a bounded child process.
+
+    Assertions are caught independently so one failing or raising case does not
+    prevent the remaining cases from producing results. This function is not a
+    security boundary; see the module docstring.
+    """
     script = _build_harness(code, test_asserts)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         script_path = Path(tmpdir) / "harness.py"
-        script_path.write_text(script)
+        script_path.write_text(script, encoding="utf-8")
         try:
             proc = subprocess.run(
-                [sys.executable, str(script_path)],
+                [sys.executable, "-I", str(script_path)],
                 capture_output=True,
                 text=True,
                 timeout=timeout_s,
                 cwd=tmpdir,
-                env={"PATH": os.environ.get("PATH", "/usr/bin:/bin")},
+                stdin=subprocess.DEVNULL,
+                env={
+                    "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+                    "PYTHONNOUSERSITE": "1",
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                },
             )
         except subprocess.TimeoutExpired:
             return SandboxResult(ran=False, error=f"execution timed out after {timeout_s}s")
@@ -111,6 +122,6 @@ def run_code(code: str, test_asserts: list[str], timeout_s: float = CONFIG.sandb
     try:
         raw_results = json.loads(results_json)
     except json.JSONDecodeError as exc:
-        return SandboxResult(ran=False, error=f"could not parse sandbox output: {exc}")
+        return SandboxResult(ran=False, error=f"could not parse execution-harness output: {exc}")
 
     return SandboxResult(ran=True, results=[TestCaseResult.model_validate(r) for r in raw_results])

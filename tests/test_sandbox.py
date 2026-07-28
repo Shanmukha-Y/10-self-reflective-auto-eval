@@ -1,4 +1,4 @@
-"""Sandbox isolation, timeout, and per-case error handling. No LLM."""
+"""Execution-harness isolation, timeout, and per-case error handling. No LLM."""
 
 from __future__ import annotations
 
@@ -61,10 +61,18 @@ def test_network_access_is_blocked():
     assert "network access is disabled" in result.results[0].error
 
 
+def test_python_isolated_mode_is_enabled():
+    code = "import sys\ndef isolated_mode():\n    return sys.flags.isolated\n"
+    result = run_code(code, ["assert isolated_mode() == 1"])
+    assert result.ran
+    assert result.all_passed
+
+
 def test_code_with_braces_does_not_break_harness():
     """Regression: the harness must not use str.format on candidate code,
     since dict literals / f-strings / comprehensions contain braces that
-    would corrupt a naive .format() template."""
+    would corrupt a naive .format() template.
+    """
     code = (
         "def make(d):\n"
         "    merged = {**d, 'extra': 1}\n"
